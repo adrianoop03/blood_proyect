@@ -24,4 +24,4 @@ class Controls:
 
     def is_shooting(self):
         keys = pygame.key.get_pressed()
-        return keys[pygame.K_k] or pygame.mouse.get_pressed()[0]
+        return keys[pygame.K_k] or pygame.mouse.get_pressed()[2]

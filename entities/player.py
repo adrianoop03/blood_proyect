@@ -1,6 +1,7 @@
 import pygame
 import os
 import math
+import random
 from entities.bullet import bullet
 from patterns.command.controls import Controls
 from patterns.strategy.movement import Movement
@@ -66,21 +67,28 @@ class Player:
         self.animator.update(dt)
 
         self.rotator.update(self, dt)
-        #  disparo 
+        # disparo 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= dt
 
         if self.controls.is_shooting() and self.shoot_cooldown <= 0:
-            shoot_direction = pygame.Vector2(
-            math.cos(math.radians(self.aim_angle + 90)),
-            math.sin(math.radians(self.aim_angle + 90))
-    )
-            new_bullet = bullet(self.position.x, self.position.y, shoot_direction)
-            self.bullets.add(new_bullet)
+            num_pellets = 6          # cantidad de perdigones
+            spread_angle = 45        # angulo del cono de disparo
+
+            for i in range(num_pellets):
+                offset = random.uniform(-spread_angle / 2, spread_angle / 2)
+                angle = self.aim_angle + 90 + offset
+
+                shoot_direction = pygame.Vector2(
+                    math.cos(math.radians(angle)),
+                    math.sin(math.radians(angle))
+                )
+
+                new_bullet = bullet(self.position.x, self.position.y, shoot_direction)
+                self.bullets.add(new_bullet)
+            
             self.shoot_cooldown = self.shoot_delay
-
-        self.bullets.update(dt,collision_rects)
-
+        self.bullets.update(dt, collision_rects)
 
     def draw(self, screen, camera):
         screen_position = camera.world_to_screen(self.position)

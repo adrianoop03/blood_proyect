@@ -2,11 +2,12 @@ import pygame
 import os
 
 class bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, speed=25):
+    def __init__(self, x, y, direction, speed=18,radius=4,color =(255,0,0)):
         super().__init__()
-        self.image = pygame.transform.scale(
-            pygame.image.load("assets/images/bulletPH.png").convert_alpha(), (10, 20)
-        )
+        diameter = radius * 2
+        self.image = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, color, (radius, radius), radius)
+
         self.position = pygame.Vector2(x, y)
         self.rect = self.image.get_rect(center=self.position)
         self.direction = direction
