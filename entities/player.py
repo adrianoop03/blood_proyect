@@ -26,17 +26,42 @@ class Player:
         self.move_angle = -90
         self.move_target_angle = -90
 
+        # vida
+        self.max_health = 100
+        self.health = 100
+
+        #  energía
+        self.max_energy = 100
+        self.energy = 100
+        self.energy_regen_rate = 20   
+        self.sprint_energy_cost = 30 
+
+        self.base_speed = 400
+        self.sprint_speed = 700
+        self.speed = self.base_speed 
+
         self.aim_angle = -90
         self.aim_target_angle = -90
         self.move_direction = pygame.Vector2(0, -1)
         self.target_angle = -90
-        self.rotation_speed = 1080  # grados por segundo
+        self.rotation_speed = 1080  
 
         
 
     def update(self, dt, camera, collision_rects):
 
         direction = self.controls.get_direction()
+        #  correr
+        is_trying_to_run = self.controls.is_running() and direction.length_squared() > 0
+
+        if is_trying_to_run and self.energy > 0:
+            self.speed = self.sprint_speed
+            self.energy -= self.sprint_energy_cost * dt
+            if self.energy < 0:
+                self.energy = 0
+        else:
+            self.speed = self.base_speed
+            self.regen_energy(dt)
         
         moving = self.movement.move(self, direction, dt, collision_rects)
 
@@ -125,7 +150,22 @@ class Player:
         
         screen.blit(body, body_rect)
         screen.blit(head, head_rect)
-        # --- dibujar balas con offset de cámara ---
+        # dibujar balas
         for b in self.bullets:
             bullet_rect = b.image.get_rect(center=b.position - camera.position)
             screen.blit(b.image, bullet_rect)
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health < 0:
+            self.health = 0
+
+    def heal(self, amount):
+        self.health += amount
+        if self.health > self.max_health:
+            self.health = self.max_health
+
+    def regen_energy(self, dt):
+        self.energy += self.energy_regen_rate * dt
+        if self.energy > self.max_energy:
+            self.energy = self.max_energy
