@@ -3,15 +3,24 @@ import pygame
 class HUD:
 
     def __init__(self):
+        scale_factor=2.5
         self.health_empty = pygame.image.load("assets/ui/bars/life_bar_empty.png").convert_alpha()
         self.health_full = pygame.image.load("assets/ui/bars/life_bar.png").convert_alpha()
 
         self.stamina_empty = pygame.image.load("assets/ui/bars/stamina_bar_empty.png").convert_alpha()
         self.stamina_full = pygame.image.load("assets/ui/bars/stamina_bar.png").convert_alpha()
 
-        self.x = 20
-        self.y = 20
-        self.spacing = 10
+        size=(int(self.health_empty.get_width() * scale_factor),
+            int(self.health_full.get_height() * scale_factor))
+
+        self.health_empty = pygame.transform.scale(self.health_empty, size)
+        self.health_full = pygame.transform.scale(self.health_full, size)
+        self.stamina_empty = pygame.transform.scale(self.stamina_empty, size)
+        self.stamina_full = pygame.transform.scale(self.stamina_full, size)
+        
+        self.x = 0
+        self.y = 0
+        self.spacing = 0
 
     def draw(self, screen, player):
         # barra de vida vacía 
@@ -25,6 +34,7 @@ class HUD:
         if visible_width > 0:
             crop_rect = pygame.Rect(0, 0, visible_width, self.health_full.get_height())
             screen.blit(self.health_full, (self.x, self.y), crop_rect)
+        
         #  stamina 
         stamina_y = self.y + self.health_full.get_height() + self.spacing
         screen.blit(self.stamina_empty, (self.x, stamina_y))
