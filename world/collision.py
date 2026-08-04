@@ -1,30 +1,21 @@
-import pytmx
+import pytmx as tmx
 import pygame
 
-class Collision:
+class CollisionMap:
 
+    def __init__(self, tmx):
 
-            
-    def move(self, entity, movement, walls):
+        self.rects = []
 
-        # Movimiento horizontal
-        entity.hitbox.x += movement.x
+        for obj in tmx.get_layer_by_name("collision"):
 
-        for wall in walls:
-            if entity.hitbox.colliderect(wall):
-                if movement.x > 0:
-                    entity.hitbox.right = wall.left
-                elif movement.x < 0:
-                    entity.hitbox.left = wall.right
+            self.rects.append(
 
-        # Movimiento vertical
-        entity.hitbox.y += movement.y
+                pygame.Rect(
+                    obj.x,
+                    obj.y,
+                    obj.width,
+                    obj.height
+                )
 
-        for wall in walls:
-            if entity.hitbox.colliderect(wall):
-                if movement.y > 0:
-                    entity.hitbox.bottom = wall.top
-                elif movement.y < 0:
-                    entity.hitbox.top = wall.bottom
-
-        entity.position.update(entity.hitbox.center)
+            )

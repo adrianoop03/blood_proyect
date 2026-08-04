@@ -15,6 +15,7 @@ class TileMap:
                 for x, y, gid in layer:
 
                     tile = self.tmx.get_tile_image_by_gid(gid)
+
                     if tile:
 
                         tile_pos = camera.world_to_screen(
