@@ -1,6 +1,10 @@
 import pygame
-from entities.bullet import *
+
+
 class Controls:
+
+    def __init__(self):
+        self.prev_healing = False
 
     def get_direction(self):
         keys = pygame.key.get_pressed()
@@ -18,14 +22,24 @@ class Controls:
         if movement.length_squared() > 0:
             movement = movement.normalize()
         return movement
-    
+
     def get_mouse_position(self):
         return pygame.mouse.get_pos()
 
     def is_shooting(self):
-        keys = pygame.key.get_pressed()
-        return pygame.mouse.get_pressed()[2]
+        return pygame.mouse.get_pressed()[0]
 
     def is_running(self):
         keys = pygame.key.get_pressed()
         return keys[pygame.K_LSHIFT]
+
+    def is_healing(self):
+        keys = pygame.key.get_pressed()
+        return keys[pygame.K_e]
+
+    def is_healing_just_pressed(self):
+        keys = pygame.key.get_pressed()
+        current = keys[pygame.K_e]
+        just_pressed = current and not self.prev_healing
+        self.prev_healing = current
+        return just_pressed

@@ -1,4 +1,5 @@
 import pygame
+
 from entities.player import Player
 from world.level import *
 from patterns.strategy.camera import Camera
@@ -20,6 +21,7 @@ level = Level(
 
 level.spawn_player(player)
 running = True
+
 while running:
 
     for event in pygame.event.get():
@@ -31,7 +33,7 @@ while running:
     player.update(
         dt,
         camera,
-        level.collision.rects
+        level.collisionmap.rects
     )
 
     screen.fill((40,40,40))

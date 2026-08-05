@@ -1,14 +1,15 @@
 import pygame, pytmx
 from world.collision import *
-from world.tilemap import *
 
+from world.tilemap import *
+from world.collisionmap import CollisionMap
 
 
 class Level:
 
     def __init__(self, filename):
         self.tilemap = TileMap(filename)
-        self.collision = CollisionMap(self.tilemap.tmx)
+        self.collisionmap = CollisionMap(self.tilemap.tmx)
 
     def get_spawn(self, name):
 
@@ -22,3 +23,7 @@ class Level:
 
     def spawn_player(self, player):
         player.position = self.get_spawn("Player")
+        player.hitbox.center = (
+            int(player.position.x),
+            int(player.position.y)
+        )
