@@ -11,8 +11,17 @@ class Level:
         self.tilemap = TileMap(filename)
         self.collisionmap = CollisionMap(self.tilemap.tmx)
 
-    def get_spawn(self, name):
+    @property
+    def width(self):
+        tmx = self.tilemap.tmx
+        return tmx.width * tmx.tilewidth
 
+    @property
+    def height(self):
+        tmx = self.tilemap.tmx
+        return tmx.height * tmx.tileheight
+
+    def get_spawn(self, name):
         layer = self.tilemap.tmx.get_layer_by_name("Spawn")
 
         for obj in layer:
