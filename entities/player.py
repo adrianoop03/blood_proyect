@@ -29,6 +29,8 @@ class Player:
         # vida
         self.max_health = 100
         self.health = 100
+        self.flash_timer = 0
+        self.flash_duration = 0.15
 
         #  energía
         self.max_energy = 100
@@ -114,6 +116,8 @@ class Player:
             
             self.shoot_cooldown = self.shoot_delay
         self.bullets.update(dt, collision_rects)
+        if self.flash_timer > 0:
+            self.flash_timer -= dt
 
     def draw(self, screen, camera):
         screen_position = camera.world_to_screen(self.position)
@@ -148,8 +152,18 @@ class Player:
         
 
         
-        screen.blit(body, body_rect)
-        screen.blit(head, head_rect)
+        if self.flash_timer > 0:
+            flash_body = body.copy()
+            flash_body.fill((255, 60, 60, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(flash_body, body_rect)
+
+            flash_head = head.copy()
+            flash_head.fill((255, 60, 60, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            screen.blit(flash_head, head_rect)
+        else:
+            screen.blit(body, body_rect)
+            screen.blit(head, head_rect)
+
         # dibujar balas
         for b in self.bullets:
             bullet_rect = b.image.get_rect(center=b.position - camera.position)
@@ -157,6 +171,7 @@ class Player:
 
     def take_damage(self, amount):
         self.health -= amount
+        self.flash_timer = self.flash_duration
         if self.health < 0:
             self.health = 0
 
