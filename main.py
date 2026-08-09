@@ -9,7 +9,9 @@ from patterns.decorator.blood import BloodDecals
 from entities.enemy import Enemy
 from entities.ranged_enemy import RangedEnemy
 from entities.enemy_manager import EnemyManager
+from managers.sound_manager import SoundManager
 camera = Camera(1920, 1080)
+pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
 icon_image = pygame.image.load('core/game_icon.png')
 pygame.display.set_icon(icon_image)
@@ -74,6 +76,8 @@ while running:
 
     screen.fill((40, 40, 40))
     level.tilemap.draw(screen, camera)
+    sound_manager = SoundManager()
+    player.sound_manager = sound_manager
     blood_decals.draw(screen, camera)
     player.draw(screen, camera)
     hud.draw(screen, player)

@@ -64,6 +64,19 @@ class Player:
         # nivel, ej: player.blood_decals = blood_decals
         self.blood_decals = None
 
+        # sonido: se asigna desde afuera (main.py), ej:
+        # player.sound_manager = sound_manager
+        self.sound_manager = None
+        self._last_legs_frame = -1
+        self._last_legs_animation = None
+
+        # frames del ciclo de piernas en los que el pie toca el piso
+        # (ajustar a los frames reales de tu spritesheet)
+        self.footstep_frames = {
+            "frontwalk": {2, 7},
+            "backwalk": {3, 9},
+        }
+
         # invulnerabilidad (activa mientras dura el dodge)
         self.invulnerable = False
 
@@ -85,6 +98,9 @@ class Player:
         self.flash_timer = self.flash_duration
         if self.health < 0:
             self.health = 0
+
+        if self.sound_manager:
+            self.sound_manager.play("hurt")
 
         if self.blood_decals:
             self.blood_decals.splash_world(
@@ -154,6 +170,28 @@ class Player:
 
         return moving
 
+    def _update_footsteps(self):
+        legs_anim = self.animator.legs_player.animation
+        frame = self.animator.legs_player.frame
+
+        # solo evaluar cuando el frame CAMBIA, no en cada tick de update()
+        if legs_anim == self._last_legs_animation and frame == self._last_legs_frame:
+            return
+
+        self._last_legs_animation = legs_anim
+        self._last_legs_frame = frame
+
+        step_frames = self.footstep_frames.get(legs_anim)
+        if not step_frames or frame not in step_frames:
+            return
+
+        if not self.sound_manager:
+            return
+
+        is_running = self.speed > self.base_speed
+        category = "footsteps_run" if is_running else "footsteps_walk"
+        self.sound_manager.play_footstep(category)
+
     def fire_bullets(self):
         num_pellets = 6
         spread_angle = 45
@@ -197,6 +235,7 @@ class Player:
         self.active_effects = [e for e in self.active_effects if not e.finished]
 
         self.animator.update(dt)
+        self._update_footsteps()
         self.rotator.update(self, dt)
 
         self.hitbox.center = (

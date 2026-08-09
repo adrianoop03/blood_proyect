@@ -49,16 +49,23 @@ class FreeState(PlayerState):
 # termina sola cuando la animación de body/head llega al final.
 # ---------------------------------------------------------------------------
 class HealingState(PlayerState):
-
+    sound_frame = 9
     def enter(self, player):
         player.animator.play_body("healing")
         player.animator.play_head("healing")
+        self._sound_played = False
 
     def update(self, player, dt, walls, enemies=None):
         # solo piernas: body/head deben seguir en "healing", no pisarlos
         player.apply_locomotion(dt, walls, sync_body_head=False)
+
         if player.animator.body_player.frame == 9:
-            player.heal(5)
+            player.heal(20)
+
+        if not self._sound_played and player.animator.body_player.frame >= self.sound_frame:
+            self._sound_played = True
+            if player.sound_manager:
+                player.sound_manager.play("heal")
         if player.animator.body_player.finished:
             return FreeState()
         return None
@@ -70,17 +77,17 @@ class HealingState(PlayerState):
 class ShootState(PlayerState):
 
     def enter(self, player):
-
         player.animator.play_legs("idleAr")
-        """player.animator.play_body("shoot")
-        player.animator.play_head("shoot")"""
+        player.animator.play_body("shoot")
+        player.animator.play_head("shoot")
         player.fire_bullets()
+        if player.sound_manager:
+            player.sound_manager.play("shoot")
 
     def update(self, player, dt, walls, enemies=None):
-        """if player.animator.body_player.finished:
-            return FreeState()"""
-        #Cambiar cuando tenga animación de disparo
-        return FreeState()
+        if player.animator.body_player.finished:
+            return FreeState()
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +120,8 @@ class MeleeAttackState(PlayerState):
         player.animator.play_body(self.animation_name)
         player.animator.play_head(self.animation_name)
         self.hit_targets = set()
+        if player.sound_manager:
+            player.sound_manager.play(self.animation_name)  # swing: attack1/2/3
 
     def _in_recovery(self, player):
         return player.animator.body_player.frame >= self.lock_until_frame
@@ -136,12 +145,17 @@ class MeleeAttackState(PlayerState):
             return
 
         hitbox = self._get_hitbox(player)
+        new_hits = False
         for enemy in enemies:
             if enemy in self.hit_targets:
                 continue
             if hitbox.colliderect(enemy.hitbox):
                 enemy.take_damage(self.damage)
                 self.hit_targets.add(enemy)
+                new_hits = True
+
+        if new_hits and player.sound_manager:
+            player.sound_manager.play("hit")
 
     def handle_input(self, player):
         if not self._in_recovery(player):
@@ -233,9 +247,11 @@ class DodgeState(PlayerState):
         player.invulnerable = True
         player.consume_energy(player.dodge_energy_cost)
 
-#        player.animator.play_legs("dodge")
-#        player.animator.play_body("dodge")
-#        player.animator.play_head("dodge")
+        #player.animator.play_legs("dodge")
+        #player.animator.play_body("dodge")
+        #player.animator.play_head("dodge")
+        if player.sound_manager:
+            player.sound_manager.play("dodge")
 
     def update(self, player, dt, walls, enemies=None):
         self.timer += dt
