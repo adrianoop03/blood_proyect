@@ -40,13 +40,6 @@ class Level:
 
     def spawn_player(self, player):
         player.position = self.get_spawn("Player")
-<<<<<<< HEAD
-        player.hitbox.center = (
-            int(player.position.x),
-            int(player.position.y)
-        )
-        player.position = self.get_spawn("Player")
-=======
 
     def get_reachable_tiles(self, start_position):
         if self._reachable_tiles is not None:
@@ -135,4 +128,3 @@ class Level:
             spawns.append(pygame.Vector2(x, y))
 
         return spawns
->>>>>>> origin/Feature/LautaroTonini
