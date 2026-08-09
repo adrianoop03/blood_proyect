@@ -12,26 +12,6 @@ screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN | pygame.SCALED
 pygame.display.set_caption("Damn Beast")
 clock = pygame.time.Clock()
 
-<<<<<<< HEAD
-# "menu" | "juego" | "pausa" | "ranking" | "opciones"
-current_screen = "menu"
-
-menu = Menu(screen)
-ranking = None
-options = None
-pause = None
-
-camera = None
-player = None
-level = None
-
-running = True
-
-while running:
-
-    dt = clock.tick(60) / 1000
-
-=======
 player = Player()
 hud=HUD()
 level = Level(
@@ -42,7 +22,6 @@ level.spawn_player(player)
 running = True
 while running:
 
->>>>>>> origin/feature/lautarotonini
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
