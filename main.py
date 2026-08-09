@@ -42,7 +42,7 @@ while running:
             if selection == "Iniciar":
                 camera = Camera(screen.get_width(), screen.get_height())
                 player = Player()
-                level = Level("assets/maps/level1.tmx")
+                level = Level("assets/maps/level2.tmx")
                 level.spawn_player(player)
                 current_screen = "juego"
 
