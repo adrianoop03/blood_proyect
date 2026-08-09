@@ -14,7 +14,7 @@ screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN | pygame.SCALED
 pygame.display.set_caption("Damn Beast")
 clock = pygame.time.Clock()
 
-# "menu" | "juego" | "pausa" | "ranking" | "opciones"
+# "menu" 
 current_screen = "menu"
 
 menu = Menu(screen)
@@ -46,9 +46,7 @@ while running:
                 level.spawn_player(player)
                 current_screen = "juego"
 
-           # elif selection == "Ranking":
-            #    ranking = Ranking(screen)
-             #   current_screen = "ranking"
+           
 
             elif selection == "Opciones":
                 options = Options(screen)
@@ -74,9 +72,7 @@ while running:
             elif selection == "Salir":
                 running = False
 
-        elif current_screen == "ranking":
-            if ranking.handle_event(event) == "Volver":
-                current_screen = "menu"
+        
 
         elif current_screen == "opciones":
             if options.handle_event(event) == "Volver":
@@ -115,9 +111,6 @@ while running:
         pause.update()
         pause.draw()
 
-    elif current_screen == "ranking":
-        ranking.update()
-        ranking.draw()
 
     elif current_screen == "opciones":
         options.update()
