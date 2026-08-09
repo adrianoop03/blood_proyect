@@ -70,15 +70,17 @@ class HealingState(PlayerState):
 class ShootState(PlayerState):
 
     def enter(self, player):
+
         player.animator.play_legs("idleAr")
-        player.animator.play_body("shoot")
-        player.animator.play_head("shoot")
+        """player.animator.play_body("shoot")
+        player.animator.play_head("shoot")"""
         player.fire_bullets()
 
     def update(self, player, dt, walls, enemies=None):
-        if player.animator.body_player.finished:
-            return FreeState()
-        return None
+        """if player.animator.body_player.finished:
+            return FreeState()"""
+        #Cambiar cuando tenga animación de disparo
+        return FreeState()
 
 
 # ---------------------------------------------------------------------------
