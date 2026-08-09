@@ -13,6 +13,8 @@ class Player:
         self.bullets = pygame.sprite.Group()
         self.shoot_cooldown = 0
         self.shoot_delay = 0.3 
+        self.num_pellets = 6
+        self.spread_angle = 25
         self.controls = Controls()
         self.movement = Movement()
         self.aim = Aim()
@@ -99,11 +101,9 @@ class Player:
             self.shoot_cooldown -= dt
 
         if self.controls.is_shooting() and self.shoot_cooldown <= 0:
-            num_pellets = 6          # cantidad de perdigones
-            spread_angle = 45        # angulo del cono de disparo
 
-            for i in range(num_pellets):
-                offset = random.uniform(-spread_angle / 2, spread_angle / 2)
+            for i in range(self.num_pellets):
+                offset = random.uniform(-self.spread_angle / 2, self.spread_angle / 2)
                 angle = self.aim_angle + 90 + offset
 
                 shoot_direction = pygame.Vector2(
@@ -113,8 +113,9 @@ class Player:
 
                 new_bullet = bullet(self.position.x, self.position.y, shoot_direction)
                 self.bullets.add(new_bullet)
+
+                self.shoot_cooldown = self.shoot_delay
             
-            self.shoot_cooldown = self.shoot_delay
         self.bullets.update(dt, collision_rects)
         if self.flash_timer > 0:
             self.flash_timer -= dt
