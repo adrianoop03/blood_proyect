@@ -124,7 +124,7 @@ while running:
                 hud = HUD()
 
                 level = Level(
-                    "assets/maps/level1.tmx"
+                    "assets/maps/level2.tmx"
                 )
 
                 level.spawn_player(player)
