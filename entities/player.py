@@ -13,7 +13,15 @@ from patterns.strategy.effects import ShockwaveEffect
 
 class Player:
     def __init__(self):
+<<<<<<< HEAD
         self.position = pygame.Vector2(400, 300)
+=======
+        self.bullets = pygame.sprite.Group()
+        self.shoot_cooldown = 0
+        self.shoot_delay = 0.3 
+        self.num_pellets = 6
+        self.spread_angle = 25
+>>>>>>> origin/Feature/grego
         self.controls = Controls()
         self.movement = Movement()
         self.aim = Aim()
@@ -179,6 +187,7 @@ class Player:
 
         return moving
 
+<<<<<<< HEAD
     def _update_footsteps(self):
         legs_anim = self.animator.legs_player.animation
         frame = self.animator.legs_player.frame
@@ -186,6 +195,13 @@ class Player:
         # solo evaluar cuando el frame CAMBIA, no en cada tick de update()
         if legs_anim == self._last_legs_animation and frame == self._last_legs_frame:
             return
+=======
+        if self.controls.is_shooting() and self.shoot_cooldown <= 0:
+
+            for i in range(self.num_pellets):
+                offset = random.uniform(-self.spread_angle / 2, self.spread_angle / 2)
+                angle = self.aim_angle + 90 + offset
+>>>>>>> origin/Feature/grego
 
         self._last_legs_animation = legs_anim
         self._last_legs_frame = frame
@@ -236,6 +252,15 @@ class Player:
 
         self.regen_energy(dt)
 
+<<<<<<< HEAD
+=======
+                new_bullet = bullet(self.position.x, self.position.y, shoot_direction)
+                self.bullets.add(new_bullet)
+
+                self.shoot_cooldown = self.shoot_delay
+            
+        self.bullets.update(dt, collision_rects)
+>>>>>>> origin/Feature/grego
         if self.flash_timer > 0:
             self.flash_timer -= dt
 
