@@ -1,16 +1,24 @@
 import pygame
 import random
+import math
 import os
 
 
 class BloodDecals:
     """Maneja las manchas de sangre en el mapa. Es una unica superficie
     persistente del tamaño del nivel: se pinta una vez por evento (no cada
-    frame) y despues solo se recorta y dibuja la parte visible."""
+    frame) y despues solo se recorta y dibuja la parte visible.
 
-    def __init__(self, level_size, splat_folder="assets/images/blood"):
+    Los splats se organizan por 'tipo' de sangre (ej: player, enemy), en
+    subcarpetas dentro de splat_root:
+        assets/images/blood/player/*.png
+        assets/images/blood/enemy/*.png
+    Si no hay subcarpetas, todos los .png sueltos en splat_root se cargan
+    como el tipo "default"."""
+
+    def __init__(self, level_size, splat_root="assets/images/blood"):
         self.world_surface = pygame.Surface(level_size, pygame.SRCALPHA)
-        self.splat_images = self._load_splats(splat_folder)
+        self.splats_by_type = self._load_splat_types(splat_root)
 
     def _load_splats(self, folder):
         images = []
@@ -23,24 +31,64 @@ class BloodDecals:
             raise ValueError(f"No se encontraron sprites de sangre en {folder}")
         return images
 
-    def splash_world(self, world_position, count=6, min_scale=0.5, max_scale=1.3, spread=40):
-        """Tira varias manchas alrededor de una posicion del mundo (ej: donde
-        murio un enemigo, o donde el jugador recibio un golpe)."""
-        for _ in range(count):
-            splat = random.choice(self.splat_images)
+    def _load_splat_types(self, root):
+        types = {}
+        for entry in os.listdir(root):
+            full_path = os.path.join(root, entry)
+            if os.path.isdir(full_path):
+                types[entry] = self._load_splats(full_path)
 
+        if not types:
+            types["default"] = self._load_splats(root)
+
+        return types
+
+    def get_splats(self, blood_type):
+        return self.splats_by_type.get(blood_type, self.splats_by_type.get("default", []))
+
+    def splash_world(self, world_position, blood_type="default", count=1,
+                      min_scale=0.9, max_scale=1.4, spread=140, avoid_rect=None):
+        """Tira una (o pocas) mancha 'ya armada' cerca de world_position.
+        count=1 por defecto: una sola mancha grande se ve mejor que varias
+        chicas amontonadas. avoid_rect (ej: player.hitbox) evita que la
+        mancha caiga justo debajo del sprite que la genero: el offset se
+        samplea con un radio MINIMO que ya saca el centro de la mancha mas
+        alla del avoid_rect, en vez de samplear a ciegas y reintentar."""
+
+        splats = self.get_splats(blood_type)
+        if not splats:
+            return
+
+        min_offset = 0
+        if avoid_rect is not None:
+            # la mitad de la diagonal del avoid_rect + margen, para que el
+            # offset minimo ya empiece afuera de el
+            min_offset = max(avoid_rect.width, avoid_rect.height) / 2 + 20
+
+        max_offset = max(spread, min_offset + 1)
+
+        for _ in range(count):
+            splat = random.choice(splats)
             scale = random.uniform(min_scale, max_scale)
             angle = random.uniform(0, 360)
-            splat = pygame.transform.rotozoom(splat, angle, scale)
+            transformed = pygame.transform.rotozoom(splat, angle, scale)
 
-            offset = pygame.Vector2(
-                random.uniform(-spread, spread),
-                random.uniform(-spread, spread)
-            )
-            pos = world_position + offset
+            for attempt in range(6):
+                direction = random.uniform(0, 2 * math.pi)
+                distance = random.uniform(min_offset, max_offset)
+                offset = pygame.Vector2(
+                    math.cos(direction),
+                    math.sin(direction)
+                ) * distance
 
-            rect = splat.get_rect(center=pos)
-            self.world_surface.blit(splat, rect)
+                pos = world_position + offset
+                rect = transformed.get_rect(center=pos)
+
+                if avoid_rect is None or not rect.colliderect(avoid_rect):
+                    self.world_surface.blit(transformed, rect)
+                    break
+                # si choca con avoid_rect, reintenta con otro offset
+                # (hasta 4 intentos); si ninguno funciona, se descarta
 
     def draw(self, screen, camera):
         """Dibujar SOLO la parte visible de la capa de sangre. Llamar entre
@@ -52,43 +100,3 @@ class BloodDecals:
             screen.get_height()
         )
         screen.blit(self.world_surface, (0, 0), area=visible_rect)
-
-
-class BloodStainable:
-    """Mixin para que una entidad (Player, Enemy, etc.) pueda acumular
-    manchas propias que se mueven y rotan junto con su sprite."""
-
-    def init_blood_layer(self, size):
-        # 'size' deberia ser un poco mas grande que el sprite del cuerpo
-        # para que las manchas no se corten en los bordes al rotar
-        self.blood_layer = pygame.Surface(size, pygame.SRCALPHA)
-
-    def add_local_stain(self, splat_images, count=1, min_scale=0.25, max_scale=0.6):
-        if not hasattr(self, "blood_layer"):
-            return
-
-        w, h = self.blood_layer.get_size()
-
-        for _ in range(count):
-            splat = random.choice(splat_images)
-            splat = pygame.transform.rotozoom(
-                splat,
-                random.uniform(0, 360),
-                random.uniform(min_scale, max_scale)
-            )
-            pos = (
-                random.randint(0, w),
-                random.randint(0, h)
-            )
-            rect = splat.get_rect(center=pos)
-            self.blood_layer.blit(splat, rect)
-
-    def draw_blood_layer(self, screen, camera, angle):
-        """Llamar en el draw() de la entidad, despues de dibujar el body
-        (para que la sangre quede encima de la piel/ropa)."""
-        if not hasattr(self, "blood_layer"):
-            return
-
-        stained = pygame.transform.rotate(self.blood_layer, -angle)
-        stained_rect = stained.get_rect(center=self.position - camera.position)
-        screen.blit(stained, stained_rect)

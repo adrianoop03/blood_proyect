@@ -48,6 +48,13 @@ class Animator:
         self.body_player = AnimationPlayer()
         self.head_player = AnimationPlayer()
 
+        # arrancar con una animacion valida desde el primer frame, para que
+        # torso/head/legs nunca devuelvan self.animations[None]
+        self.play_body(animation_name)
+        self.play_head(animation_name)
+        if ANIMATIONS[animation_name]["has_legs"]:
+            self.play_legs(animation_name)
+
 
     def load_animation(self, animation_name, path, frame_count, has_legs):
         if not has_legs:

@@ -9,11 +9,10 @@ from patterns.strategy.aim import Aim
 from patterns.strategy.animator import Animator
 from patterns.strategy.rotator import Rotator
 from patterns.state.states import FreeState
-from patterns.decorator.blood import BloodStainable
+from patterns.strategy.effects import ShockwaveEffect
 
-class Player(BloodStainable):
+class Player:
     def __init__(self):
-        super().__init__()
         self.position = pygame.Vector2(400, 300)
         self.controls = Controls()
         self.movement = Movement()
@@ -25,7 +24,6 @@ class Player(BloodStainable):
         )
         self.move_angle = -90
         self.move_target_angle = -90
-        self.init_blood_layer((160, 160))
         self.aim_angle = -90
         self.aim_target_angle = -90
         self.move_direction = pygame.Vector2(0, -1)
@@ -67,9 +65,15 @@ class Player(BloodStainable):
         # invulnerabilidad (activa mientras dura el dodge)
         self.invulnerable = False
 
+        # efectos activos (ej: shockwave del 3er golpe)
+        self.active_effects = []
+
         # maquina de estados
         self.state = FreeState()
         self.state.enter(self)
+
+    def trigger_shockwave(self):
+        self.active_effects.append(ShockwaveEffect(self.position))
 
     def take_damage(self, amount):
         if self.invulnerable:
@@ -80,8 +84,11 @@ class Player(BloodStainable):
             self.health = 0
 
         if self.blood_decals:
-            self.add_local_stain(self.blood_decals.splat_images, count=2)
-            self.blood_decals.splash_world(self.position, count=4)
+            self.blood_decals.splash_world(
+                self.position,
+                blood_type="player",
+                avoid_rect=self.hitbox
+            )
 
     def heal(self, amount):
         self.health += amount
@@ -160,7 +167,7 @@ class Player(BloodStainable):
             new_bullet = bullet(self.position.x, self.position.y, shoot_direction)
             self.bullets.add(new_bullet)
 
-    def update(self, dt, camera, walls):
+    def update(self, dt, camera, walls, enemies=None):
         mouse_world = camera.screen_to_world(
             pygame.mouse.get_pos()
         )
@@ -170,7 +177,7 @@ class Player(BloodStainable):
         )
         next_state = self.state.handle_input(self)
         if next_state is None:
-            next_state = self.state.update(self, dt, walls)
+            next_state = self.state.update(self, dt, walls, enemies)
 
         if next_state is not None:
             self.state.exit(self)
@@ -178,6 +185,10 @@ class Player(BloodStainable):
             self.state.enter(self)
 
         self.regen_energy(dt)
+
+        for effect in self.active_effects:
+            effect.update(dt, enemies)
+        self.active_effects = [e for e in self.active_effects if not e.finished]
 
         self.animator.update(dt)
         self.rotator.update(self, dt)
@@ -188,6 +199,12 @@ class Player(BloodStainable):
         )
 
         self.bullets.update(dt, walls)
+
+    def draw_effects(self, screen, camera):
+        """Llamar ANTES de player.draw(), junto con blood_decals.draw(),
+        para que el shockwave se vea en el piso y no tape al personaje."""
+        for effect in self.active_effects:
+            effect.draw(screen, camera)
 
     def draw(self, screen, camera):
         screen_position = camera.world_to_screen(self.position)
@@ -226,7 +243,6 @@ class Player(BloodStainable):
         head_rect = head.get_rect(center=self.position - camera.position)
 
         screen.blit(body, body_rect)
-        self.draw_blood_layer(screen, camera, self.aim_angle)
         screen.blit(head, head_rect)
 
         for b in self.bullets:
