@@ -54,3 +54,17 @@ class TileMap:
                         pygame.Vector2(obj.x, obj.y)
                     )
                     screen.blit(obj.image, obj_pos)
+                for x, y, gid in layer:
+
+                    tile = self.tmx.get_tile_image_by_gid(gid)
+
+                    if tile:
+
+                        tile_pos = camera.world_to_screen(
+                            pygame.Vector2(
+                                x * self.tmx.tilewidth,
+                                y * self.tmx.tileheight
+                            )
+                        )
+
+                        screen.blit(tile, tile_pos)

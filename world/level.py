@@ -3,6 +3,8 @@ from world.collision import *
 
 from world.tilemap import *
 from world.collisionmap import CollisionMap
+from world.tilemap import *
+
 
 
 class Level:
@@ -10,6 +12,7 @@ class Level:
     def __init__(self, filename):
         self.tilemap = TileMap(filename)
         self.collisionmap = CollisionMap(self.tilemap.tmx)
+        self.collision = CollisionMap(self.tilemap.tmx)
 
     def get_spawn(self, name):
 
@@ -27,3 +30,4 @@ class Level:
             int(player.position.x),
             int(player.position.y)
         )
+        player.position = self.get_spawn("Player")
