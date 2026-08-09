@@ -28,3 +28,4 @@ class Collision:
                     entity.hitbox.top = wall.bottom
 
         entity.position.update(entity.hitbox.center)
+        entity.position.update(entity.hitbox.center)

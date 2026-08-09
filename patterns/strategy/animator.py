@@ -1,55 +1,122 @@
 import pygame
 import os
 
+from patterns.strategy.animationPlayer import AnimationPlayer
+
 class Animator:
 
     def __init__(self, path, animation_name):
         self.animations = {}
         self.current_animation = animation_name
         ANIMATIONS = {
-            "frontwalk": {
+            "frontdodge": {
+                "frames": 8,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": False
+            },
+            "backdodge": {
+                "frames": 9,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": False
+            },
+            "run": {
+                "frames": 8,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": True
+            },
+            "attack3": {
+                "frames": 13,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "attack2": {
+                "frames": 10,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "attack1": {
+                "frames": 12,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "parry": {
                 "frames": 11,
-                "speed": 0.075
+                "speed": 0.1,
+                "has_legs": False,
+                "loop": False
+            },
+            "healing": {
+                "frames": 13,
+                "speed": 0.1,
+                "has_legs": False,
+                "loop": False
+            },
+            "frontwalk": {
+                "frames": 9,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": True
             },
             "backwalk": {
-                "frames": 13,
-                "speed": 0.075
+                "frames": 11,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": True
             },
             "idleAr": {
-                "frames": 6,
-                "speed": 0.350
+                "frames": 5,
+                "speed": 0.350,
+                "has_legs": True,
+                "loop": True
             }
         }
         for animation, config in ANIMATIONS.items():
             self.load_animation(
                 animation,
                 path,
-                config["frames"]
+                config["frames"],
+                config["has_legs"]
             )
         self.animation_config = ANIMATIONS
         self.current_frame = 0
         self.timer = 0
+        self.legs_player = AnimationPlayer()
+        self.body_player = AnimationPlayer()
+        self.head_player = AnimationPlayer()
+
+        # arrancar con una animacion valida desde el primer frame, para que
+        # torso/head/legs nunca devuelvan self.animations[None]
+        self.play_body(animation_name)
+        self.play_head(animation_name)
+        if ANIMATIONS[animation_name]["has_legs"]:
+            self.play_legs(animation_name)
 
 
-    def load_animation(self, animation_name, path, frame_count):
-        if animation_name == "idleAr":
+    def load_animation(self, animation_name, path, frame_count, has_legs):
+        if not has_legs:
             self.animations[animation_name] = {
                 "body": [],
                 "head": []
             }
         else:
             self.animations[animation_name] = {
-                "feet": [],
+                "legs": [],
                 "body": [],
                 "head": []
             }
         
 
         for i in range(frame_count):
-            if "feet" in self.animations[animation_name]:
-                self.animations[animation_name]["feet"].append(
+            if "legs" in self.animations[animation_name]:
+                self.animations[animation_name]["legs"].append(
                     pygame.image.load(
-                        os.path.join(path, animation_name, f"{animation_name}_{i:04}_feet.png")
+                        os.path.join(path, animation_name, f"{animation_name}_{i:04}_legs.png")
                     ).convert_alpha()
                 )
 
@@ -64,40 +131,75 @@ class Animator:
                     os.path.join(path, animation_name, f"{animation_name}_{i:04}_head.png")
                 ).convert_alpha()
             )
-            
+        for name, anim in self.animations.items():
+            print(name)
 
-    def play(self, animation):
-        if animation  != self.current_animation:
-            self.current_animation = animation
-            self.current_frame = 0
-            self.timer = 0
-        self.speed = self.animation_config[animation]["speed"]
+            if "legs" in anim:
+                print("legs:", len(anim["legs"]))
+
+            print("body:", len(anim["body"]))
+            print("head:", len(anim["head"]))
+
+    def play_legs(self, animation):
+        self.legs_player.play(
+            animation,
+            self.animation_config[animation]["speed"],
+            self.animation_config[animation]["loop"]
+        )
+
+    def play_body(self, animation):
+        self.body_player.play(
+            animation,
+            self.animation_config[animation]["speed"],
+            self.animation_config[animation]["loop"]
+        )
+
+    def play_head(self, animation):
+        self.head_player.play(
+            animation,
+            self.animation_config[animation]["speed"],
+            self.animation_config[animation]["loop"]
+        )
     def update(self, dt):
+        
+        if self.legs_player.animation is not None:
+            self.legs_player.update(
+                dt,
+                len(self.animations[self.legs_player.animation]["legs"])
+            )
 
+        self.body_player.update(
+            dt,
+            len(
+                self.animations[self.body_player.animation]["body"]
+            )
+        )
 
-
-        self.timer += dt
-
-        if self.timer >= self.speed:
-
-            self.timer = 0
-
-            frames = self.animations[self.current_animation]["body"]
-
-            self.current_frame = (
-                self.current_frame + 1
-            ) % len(frames)
-
+        self.head_player.update(
+            dt,
+            len(
+                self.animations[self.head_player.animation]["head"]
+            )
+        )
             
-        print(f"Current Animation: {self.current_animation}, Current Frame: {self.current_frame}")
     @property
-    def feet(self):
-        if "feet" in self.animations[self.current_animation]:
-            return self.animations[self.current_animation]["feet"][self.current_frame]
-        return None
+    def legs(self):
+        if self.legs_player.animation is None:
+            return None
+
+        animation = self.animations[self.legs_player.animation]
+
+        if "legs" not in animation:
+            return None
+
+        return animation["legs"][self.legs_player.frame]
+    
     @property
     def torso(self):
-        return self.animations[self.current_animation]["body"][self.current_frame]
+        animation = self.animations[self.body_player.animation]
+        return animation["body"][self.body_player.frame]
+    
     @property
     def head(self):
-        return self.animations[self.current_animation]["head"][self.current_frame]
+        animation = self.animations[self.head_player.animation]
+        return animation["head"][self.head_player.frame]
