@@ -79,11 +79,6 @@ while running:
         level.collisionmap.rects,
         enemies
     )
-<<<<<<< HEAD
-    enemy_list = list(enemies)
-    for enemy in enemies:
-        enemy.update(dt, player, level.collisionmap.rects, all_enemies=enemy_list)
-=======
     if not skill_board.active:
     
         if awaiting_wave_spawn:
@@ -91,7 +86,6 @@ while running:
             awaiting_wave_spawn = False
     
             player.update(dt, camera, level.collision.rects)
->>>>>>> origin/Feature/grego
 
 
         enemy_list = list(enemies)
