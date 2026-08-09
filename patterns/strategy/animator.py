@@ -9,26 +9,68 @@ class Animator:
         self.animations = {}
         self.current_animation = animation_name
         ANIMATIONS = {
+            "frontdodge": {
+                "frames": 8,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": False
+            },
+            "backdodge": {
+                "frames": 9,
+                "speed": 0.075,
+                "has_legs": True,
+                "loop": False
+            },
+            "run": {
+                "frames": 8,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": True
+            },
+            "attack3": {
+                "frames": 13,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "attack2": {
+                "frames": 10,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "attack1": {
+                "frames": 12,
+                "speed": 0.1,
+                "has_legs": True,
+                "loop": False
+            },
+            "parry": {
+                "frames": 11,
+                "speed": 0.1,
+                "has_legs": False,
+                "loop": False
+            },
             "healing": {
-                "frames": 19,
+                "frames": 13,
                 "speed": 0.1,
                 "has_legs": False,
                 "loop": False
             },
             "frontwalk": {
-                "frames": 11,
+                "frames": 9,
                 "speed": 0.075,
                 "has_legs": True,
                 "loop": True
             },
             "backwalk": {
-                "frames": 13,
+                "frames": 11,
                 "speed": 0.075,
                 "has_legs": True,
                 "loop": True
             },
             "idleAr": {
-                "frames": 7,
+                "frames": 5,
                 "speed": 0.350,
                 "has_legs": True,
                 "loop": True

@@ -7,7 +7,7 @@ class Controls:
         self._prev_keys = {
             "healing": False,
             "attack": False,
-            "shoot": False,
+            "parry": False,
             "dodge": False,
         }
 
@@ -57,11 +57,11 @@ class Controls:
         return self._just_pressed("attack", self.is_attacking())
 
     # --- disparo: click derecho ---
-    def is_shooting(self):
+    def is_parrying(self):
         return pygame.mouse.get_pressed()[2]
 
-    def is_shoot_just_pressed(self):
-        return self._just_pressed("shoot", self.is_shooting())
+    def is_parry_just_pressed(self):
+        return self._just_pressed("parry", self.is_parrying())
 
     # --- esquivar: barra espaciadora ---
     def is_dodging(self):

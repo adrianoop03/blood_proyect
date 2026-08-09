@@ -18,8 +18,9 @@ pygame.display.set_icon(icon_image)
 screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN | pygame.SCALED)
 pygame.display.set_caption("Damn Beast")
 clock = pygame.time.Clock()
-
 player = Player()
+sound_manager = SoundManager()
+player.sound_manager = sound_manager
 hud = HUD()
 level = Level(
     "assets/maps/level1.tmx"
@@ -54,11 +55,12 @@ while running:
     player.update(
         dt,
         camera,
-        level.collisionmap.rects
+        level.collisionmap.rects,
+        enemies
     )
     enemy_list = list(enemies)
     for enemy in enemies:
-        enemy.update(dt, player, level.collision.rects, all_enemies=enemy_list)
+        enemy.update(dt, player, level.collisionmap.rects, all_enemies=enemy_list)
 
     # impactos del jugador contra enemigos
     for enemy in enemies:
@@ -76,8 +78,6 @@ while running:
 
     screen.fill((40, 40, 40))
     level.tilemap.draw(screen, camera)
-    sound_manager = SoundManager()
-    player.sound_manager = sound_manager
     blood_decals.draw(screen, camera)
     player.draw(screen, camera)
     hud.draw(screen, player)

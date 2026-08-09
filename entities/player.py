@@ -140,12 +140,21 @@ class Player:
         if is_trying_to_run and self.energy > 0:
             self.speed = self.sprint_speed
             self.consume_energy(self.sprint_energy_cost * dt)
+            running = True
         else:
             self.speed = self.base_speed
+            running = False
 
         moving = self.movement.move(self, direction, dt, walls)
 
-        if moving:
+        if moving and running:
+            # corriendo: todo el cuerpo va en la direccion de movimiento,
+            # ignorando hacia donde apunta el mouse
+            self.animator.play_legs("run")
+            if sync_body_head:
+                self.animator.play_body("run")
+                self.animator.play_head("run")
+        elif moving:
             aim_direction = pygame.Vector2(
                 math.cos(math.radians(self.aim_angle + 90)),
                 math.sin(math.radians(self.aim_angle + 90))
@@ -253,14 +262,16 @@ class Player:
 
     def draw(self, screen, camera):
         screen_position = camera.world_to_screen(self.position)
-        if self.animator.legs_player.animation == "frontwalk":
+        legs_anim = self.animator.legs_player.animation
+
+        if legs_anim in ("frontwalk", "run", "frontdodge"):
             legs = pygame.transform.rotate(
                 self.animator.legs,
                 -self.move_angle
             )
             legs_rect = legs.get_rect(center=self.position - camera.position)
             screen.blit(legs, legs_rect)
-        elif self.animator.legs_player.animation == "backwalk":
+        elif legs_anim in ("backwalk", "backdodge"):
             legs = pygame.transform.rotate(
                 self.animator.legs,
                 -(self.move_angle + 180)
@@ -275,15 +286,21 @@ class Player:
             legs_rect = legs.get_rect(center=self.position - camera.position)
             screen.blit(legs, legs_rect)
 
+        # mientras corre, todo el cuerpo mira hacia donde te movés (no hacia
+        # el mouse). En el dodge, igual que al caminar, el cuerpo sigue
+        # apuntando al mouse — solo cambian las piernas (front/back)
+        is_movement_anim = self.animator.body_player.animation == "run"
+        body_angle = self.move_angle if is_movement_anim else self.aim_angle
+
         body = pygame.transform.rotate(
             self.animator.torso,
-            -self.aim_angle
+            -body_angle
         )
         body_rect = body.get_rect(center=self.position - camera.position)
 
         head = pygame.transform.rotate(
             self.animator.head,
-            -self.aim_angle
+            -body_angle
         )
         head_rect = head.get_rect(center=self.position - camera.position)
 
