@@ -15,10 +15,10 @@ from patterns.strategy.effects import ShockwaveEffect
 class Player:
     def __init__(self):
         self.bullets = pygame.sprite.Group()
-        self.shoot_cooldown = 0
-        self.shoot_delay = 0.3
-        self.num_pellets = 6
-        self.spread_angle = 25
+        self.parry_cooldown = 0
+        self.parry_delay = 0.3
+        self.num_pellets = 4
+        self.spread_angle = 10
 
         self.controls = Controls()
         self.movement = Movement()
@@ -264,15 +264,15 @@ class Player:
 
             angle = self.aim_angle + 90 + offset
 
-            shoot_direction = pygame.Vector2(
+            parry_direction = pygame.Vector2(
                 math.cos(math.radians(angle)),
                 math.sin(math.radians(angle))
             )
 
             new_bullet = bullet(
-                self.position.x,
-                self.position.y,
-                shoot_direction
+                self.position.x + 175 * parry_direction.x,
+                self.position.y + 100 * parry_direction.y,
+                parry_direction
             )
 
             self.bullets.add(new_bullet)
@@ -304,14 +304,10 @@ class Player:
 
         self.regen_energy(dt)
 
-        if self.controls.is_shooting() and self.shoot_cooldown <= 0:
-            self.fire_bullets()
-            self.shoot_cooldown = self.shoot_delay
+        self.parry_cooldown -= dt
 
-        self.shoot_cooldown -= dt
-
-        if self.shoot_cooldown < 0:
-            self.shoot_cooldown = 0
+        if self.parry_cooldown < 0:
+            self.parry_cooldown = 0
 
         self.bullets.update(
             dt,

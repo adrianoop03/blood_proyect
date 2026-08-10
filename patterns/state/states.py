@@ -43,7 +43,6 @@ class FreeState(PlayerState):
         player.apply_locomotion(dt, walls, sync_body_head=True)
         return None
 
-
 # ---------------------------------------------------------------------------
 # Curación: se puede seguir caminando mientras cura (piernas libres),
 # termina sola cuando la animación de body/head llega al final.
@@ -91,12 +90,16 @@ class ParryState(PlayerState):
         player.animator.play_body("parry")
         player.animator.play_head("parry")
         player.animation_parry = False
-        player.fire_bullets()
+        player.parry_cooldown = False
+        
 
     def update(self, player, dt, walls, enemies=None):
         if not player.animation_parry and player.sound_manager and player.animator.body_player.frame == 5:
             player.sound_manager.play("parry")
             player.animation_parry = True
+        if not player.parry_cooldown and player.animator.body_player.frame == 4:
+            player.fire_bullets()
+            player.parry_cooldown = True
         if player.animator.body_player.finished:
             return FreeState()
         return None
@@ -211,7 +214,7 @@ class Attack1State(MeleeAttackState):
     animation_name = "attack1"
     hit_frame_start = 4
     hit_frame_end = 5
-    lock_until_frame = 6
+    lock_until_frame = 5
     next_combo_state = None  # se asigna abajo para evitar referencia circular
     damage = 18
 
@@ -220,7 +223,7 @@ class Attack2State(MeleeAttackState):
     animation_name = "attack2"
     hit_frame_start = 3
     hit_frame_end = 4
-    lock_until_frame = 5
+    lock_until_frame = 4
     next_combo_state = None
     damage = 18
 
