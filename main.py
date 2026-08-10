@@ -66,7 +66,7 @@ enemy_manager = None
 enemies = pygame.sprite.Group()
 
 current_wave = 1
-enemies_per_wave = 20
+enemies_per_wave = 10
 
 awaiting_wave_spawn = False
 
@@ -83,21 +83,20 @@ def spawn_wave(wave_number):
 
     for i, pos in enumerate(positions):
         if i % 3 == 0:
-            group.add(
-                RangedEnemy(
-                    pos.x,
-                    pos.y,
-                    manager=enemy_manager
-                )
+            enemy = RangedEnemy(
+                pos.x,
+                pos.y,
+                manager=enemy_manager
             )
         else:
-            group.add(
-                Enemy(
-                    pos.x,
-                    pos.y,
-                    manager=enemy_manager
-                )
+            enemy = Enemy(
+                pos.x,
+                pos.y,
+                manager=enemy_manager
             )
+
+        enemy.blood_decals = blood_decals
+        group.add(enemy)
 
     return group
 

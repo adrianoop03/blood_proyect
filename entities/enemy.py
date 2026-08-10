@@ -20,7 +20,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.center = self.position
         self.animator = EnemyAnimator("assets/images/drunk", "idle_armed")
-        self.facing_right = True
+        self.move_angle = -90
         self.hurt_timer = 0
         self.hurt_duration = 0.2
         self.is_dying = False
@@ -53,6 +53,7 @@ class Enemy(pygame.sprite.Sprite):
 
         # --- coordinacion grupal ---
         self.manager = manager
+        self.blood_decals = None
 
         # --- feedback visual de daño ---
         self.flash_timer = 0
@@ -66,6 +67,10 @@ class Enemy(pygame.sprite.Sprite):
             math.sin(math.radians(angle)) * dist
         )
         return self.spawn_position + offset
+    def _face_towards(self, target):
+        direction = target - self.position
+        if direction.length_squared() > 0:
+            self.move_angle = math.degrees(math.atan2(direction.y, direction.x)) - 90
 
     def update(self, dt, player, collision_rects, all_enemies=None):
         distance_to_player = self.position.distance_to(player.position)
@@ -115,6 +120,7 @@ class Enemy(pygame.sprite.Sprite):
                     self.patrol_target = self.get_new_patrol_point()
                     self.patrol_wait = random.uniform(1.5, 3.0)
             else:
+                self._face_towards(self.patrol_target)
                 self.position = move_towards(self.position, self.rect, self.patrol_target, self.speed, dt, collision_rects)
                 self.rect.center = self.position
                 moving = True
@@ -124,6 +130,7 @@ class Enemy(pygame.sprite.Sprite):
             granted = self.manager.request_engage(self) if self.manager else True
 
             if can_engage and granted:
+                self._face_towards(player.position)
                 self.state = Enemy.ATTACK
                 self.attack_timer = 0
                 self._attack_toggle = not self._attack_toggle
@@ -136,15 +143,18 @@ class Enemy(pygame.sprite.Sprite):
                     math.sin(math.radians(slot_angle))
                 ) * (self.attack_range * 1.6)
                 surround_target = player.position + offset
-                self.position = move_towards(self.position, self.rect, surround_target, self.chase_speed, dt, collision_rects)
+                self._face_towards(player.position)
+                self.position = move_towards(self.position, self.rect, player.position, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
                 moving = True
             else:
+                self._face_towards(player.position)
                 self.position = move_towards(self.position, self.rect, player.position, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
                 moving = True
 
         elif self.state == Enemy.ATTACK:
+            self._face_towards(player.position)
             self.attack_timer -= dt
             if self.attack_timer <= 0:
                 player.take_damage(self.attack_damage)
@@ -155,6 +165,7 @@ class Enemy(pygame.sprite.Sprite):
                     self.manager.release(self)
 
         elif self.state == Enemy.RETREAT:
+            self._face_towards(player.position)
             self.retreat_timer -= dt
             direction_away = self.position - player.position
             if direction_away.length_squared() > 0:
@@ -178,6 +189,13 @@ class Enemy(pygame.sprite.Sprite):
         self.health -= amount
         self.flash_timer = self.flash_duration
 
+        if self.blood_decals:
+            self.blood_decals.splash_world(
+                self.position,
+                blood_type="enemy",
+                avoid_rect=self.rect
+            )
+
         if self.health <= 0:
             self.is_dying = True
             self.animator.play("die")
@@ -189,14 +207,9 @@ class Enemy(pygame.sprite.Sprite):
 
     def draw(self, screen, camera):
         screen_pos = self.position - camera.position
-        legs = self.animator.legs
-        body = self.animator.torso
-        head = self.animator.head
-
-        if not self.facing_right:
-            legs = pygame.transform.flip(legs, True, False)
-            body = pygame.transform.flip(body, True, False)
-            head = pygame.transform.flip(head, True, False)
+        legs = pygame.transform.rotate(self.animator.legs, -self.move_angle)
+        body = pygame.transform.rotate(self.animator.torso, -self.move_angle)
+        head = pygame.transform.rotate(self.animator.head, -self.move_angle)
 
         if self.flash_timer > 0:
             legs = legs.copy()
