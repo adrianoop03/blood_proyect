@@ -57,6 +57,12 @@ class Animator:
                 "has_legs": False,
                 "loop": False
             },
+            "die": {
+                "frames": 10,        
+                "speed": 0.1,
+                "has_legs": False,  
+                "loop": False
+            },
             "frontwalk": {
                 "frames": 9,
                 "speed": 0.075,

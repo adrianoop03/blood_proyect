@@ -246,6 +246,9 @@ while running:
                 enemies
             )
 
+            if player.is_dead:
+                if player.animator.body_player.finished:
+                    current_screen = "menu" 
             camera.update(
                 player,
                 dt

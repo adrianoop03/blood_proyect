@@ -314,3 +314,22 @@ class DodgeState(PlayerState):
 
     def exit(self, player):
         player.invulnerable = False
+
+# ---------------------------------------------------------------------------
+# Muerte: bloquea todo input y movimiento, reproduce la animacion de muerte
+# una sola vez y se queda ahi para siempre (estado terminal).
+# ---------------------------------------------------------------------------
+class DeathState(PlayerState):
+
+    def enter(self, player):
+        player.animator.play_body("die")
+        player.animator.play_head("die")
+        player.invulnerable = True
+        if player.sound_manager:
+            player.sound_manager.play("die")
+
+    def handle_input(self, player):
+        return None  
+
+    def update(self, player, dt, walls, enemies=None):
+        return None  

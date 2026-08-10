@@ -8,7 +8,7 @@ from patterns.strategy.movement import Movement
 from patterns.strategy.aim import Aim
 from patterns.strategy.animator import Animator
 from patterns.strategy.rotator import Rotator
-from patterns.state.states import FreeState
+from patterns.state.states import FreeState , DeathState
 from patterns.strategy.effects import ShockwaveEffect
 
 
@@ -41,6 +41,7 @@ class Player:
         # vida
         self.max_health = 100
         self.health = 100
+        self.is_dead = False
         self.flash_timer = 0
         self.flash_duration = 0.15
 
@@ -86,6 +87,7 @@ class Player:
         self.footstep_frames = {
             "frontwalk": {2, 7},
             "backwalk": {3, 9},
+            "run": {2, 6},
         }
 
         # invulnerabilidad (activa mientras dura el dodge)
@@ -122,6 +124,12 @@ class Player:
                 blood_type="player",
                 avoid_rect=self.hitbox
             )
+
+        if self.health <= 0 and not self.is_dead:
+            self.is_dead = True
+            self.state.exit(self)
+            self.state = DeathState()
+            self.state.enter(self)
 
     def heal(self, amount):
         self.health += amount
@@ -278,14 +286,15 @@ class Player:
             self.bullets.add(new_bullet)
 
     def update(self, dt, camera, walls, enemies=None):
-        mouse_world = camera.screen_to_world(
-            pygame.mouse.get_pos()
-        )
+        if not self.is_dead:
+            mouse_world = camera.screen_to_world(
+                pygame.mouse.get_pos()
+            )
 
-        self.aim.update(
-            self,
-            mouse_world
-        )
+            self.aim.update(
+                self,
+                mouse_world
+            )
 
         next_state = self.state.handle_input(self)
 
