@@ -198,24 +198,16 @@ Los controles se encuentran centralizados mediante el patrón **Command**, permi
 A continuación se presentan algunas capturas del videojuego.
 
 ### Menú principal
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/15cc938f-6cc4-43f2-a460-3135d5bdfbcf" />
 
-![Menú principal](assets/screenshots/menu.png)
+
 
 ### Gameplay
 
-![Gameplay](assets/screenshots/gameplay.png)
 
-### Combate
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/77e8e902-5e33-4188-af7b-855839f6a5b7" />
 
-![Combate](assets/screenshots/combat.png)
 
-### Menú de opciones
-
-![Opciones](assets/screenshots/options.png)
-
-> **Nota:** Las imágenes deben colocarse dentro de `assets/screenshots/` con los nombres indicados anteriormente.
-
----
 
 #Patrones de diseño
 
