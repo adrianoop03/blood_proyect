@@ -60,7 +60,7 @@ class Animator:
             "die": {
                 "frames": 10,        
                 "speed": 0.1,
-                "has_legs": False,  
+                "has_legs": True,  
                 "loop": False
             },
             "frontwalk": {

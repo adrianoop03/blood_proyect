@@ -324,6 +324,7 @@ class DeathState(PlayerState):
     def enter(self, player):
         player.animator.play_body("die")
         player.animator.play_head("die")
+        player.animator.play_legs("die")
         player.invulnerable = True
         if player.sound_manager:
             player.sound_manager.play("die")
