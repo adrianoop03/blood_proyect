@@ -59,7 +59,7 @@ class Animator:
             },
             "die": {
                 "frames": 10,        
-                "speed": 0.1,
+                "speed": 1.25,
                 "has_legs": True,  
                 "loop": False
             },
