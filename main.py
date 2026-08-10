@@ -242,7 +242,7 @@ while running:
             player.update(
                 dt,
                 camera,
-                level.collision.rects,
+                level.collisionmap.rects,
                 enemies
             )
 
@@ -258,7 +258,7 @@ while running:
                 enemy.update(
                     dt,
                     player,
-                    level.collision.rects,
+                    level.collisionmap.rects,
                     all_enemies=enemy_list
                 )
 
