@@ -104,7 +104,7 @@ PyTMX es utilizado para cargar y administrar los mapas creados mediante herramie
 ### Base de datos
 
 * **SQLite**
-* SQL
+  
 
 ### Control de versiones
 
@@ -113,9 +113,8 @@ PyTMX es utilizado para cargar y administrar los mapas creados mediante herramie
 
 ### Herramientas de asistencia
 
-* GitHub Copilot
-* ChatGPT
-* Claude Code
+
+* Claude 
 
 ---
 
@@ -184,6 +183,7 @@ Desde el menú se puede acceder a las diferentes opciones disponibles y comenzar
 | `A`               | Mover hacia la izquierda |
 | `S`               | Mover hacia abajo        |
 | `D`               | Mover hacia la derecha   |
+| `E`               | Curarse                  |
 | `Mouse`           | Apuntar                  |
 | `Click izquierdo` | Atacar / disparar        |
 | `Espacio`         | Esquivar                 |
@@ -193,7 +193,7 @@ Los controles se encuentran centralizados mediante el patrón **Command**, permi
 
 ---
 
-# 📸 Capturas
+#  Capturas
 
 A continuación se presentan algunas capturas del videojuego.
 
