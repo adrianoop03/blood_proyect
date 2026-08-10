@@ -28,7 +28,8 @@ class PlayerState:
 class FreeState(PlayerState):
 
     def handle_input(self, player):
-        if player.controls.is_healing_just_pressed():
+        if player.controls.is_healing_just_pressed() and player.heal_charges > 0 and player.health < player.max_health:
+            return HealingState()
             return HealingState()
         if player.controls.is_parry_just_pressed():
             return ParryState()
@@ -68,7 +69,9 @@ class HealingState(PlayerState):
 
         if not self._heal_applied and frame >= self.heal_frame:
             self._heal_applied = True
-            player.heal(self.heal_amount)
+            if player.heal_charges > 0:
+                player.heal_charges -= 1
+                player.heal(self.heal_amount)
 
         if not self._sound_played and frame >= self.sound_frame:
             self._sound_played = True
@@ -125,7 +128,7 @@ class MeleeAttackState(PlayerState):
     hit_frame_end = 6
  
     hit_reach = 70        # distancia del hitbox desde el centro del jugador
-    hit_size = (70, 70)   # ancho, alto del hitbox
+    hit_size = (100, 100)   # ancho, alto del hitbox
     damage = 15
  
     dash_speed = 900       # velocidad del dash de windup
@@ -213,7 +216,7 @@ class MeleeAttackState(PlayerState):
 class Attack1State(MeleeAttackState):
     animation_name = "attack1"
     hit_frame_start = 4
-    hit_frame_end = 5
+    hit_frame_end = 9
     lock_until_frame = 5
     next_combo_state = None  # se asigna abajo para evitar referencia circular
     damage = 18
@@ -222,7 +225,7 @@ class Attack1State(MeleeAttackState):
 class Attack2State(MeleeAttackState):
     animation_name = "attack2"
     hit_frame_start = 3
-    hit_frame_end = 4
+    hit_frame_end = 7
     lock_until_frame = 4
     next_combo_state = None
     damage = 18
@@ -231,7 +234,7 @@ class Attack2State(MeleeAttackState):
 class Attack3State(MeleeAttackState):
     animation_name = "attack3"
     hit_frame_start = 5
-    hit_frame_end = 6
+    hit_frame_end = 9
     lock_until_frame = 7
     next_combo_state = None  # último del combo: no encadena a nada
     damage = 22

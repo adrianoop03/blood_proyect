@@ -66,7 +66,7 @@ enemy_manager = None
 enemies = pygame.sprite.Group()
 
 current_wave = 1
-enemies_per_wave = 6
+enemies_per_wave = 20
 
 awaiting_wave_spawn = False
 
@@ -191,17 +191,6 @@ while running:
                 print(
                     f"Jugador recibió daño, vida actual: {player.health}"
                 )
-
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-
-                curo = player.try_heal()
-
-                if curo:
-                    print(
-                        f"Jugador se curo. Vida: {player.health}, cargas restantes: {player.heal_charges}"
-                    )
-                else:
-                    print("No se pudo curar (sin cargas o vida llena)")
 
             if event.type == pygame.KEYDOWN and skill_board.active:
 

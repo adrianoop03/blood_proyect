@@ -139,23 +139,6 @@ class Player:
         if self.health > self.max_health:
             self.health = self.max_health
 
-    def try_heal(self):
-        """Gasta una carga de curacion, si hay disponible y hace falta.
-        Devuelve True si curo, False si no pudo (sin cargas o vida llena)."""
-        if self.heal_charges <= 0:
-            return False
-
-        if self.health >= self.max_health:
-            return False
-
-        self.heal_charges -= 1
-        self.heal(self.heal_amount)
-
-        if self.sound_manager:
-            self.sound_manager.play("heal")
-
-        return True
-
     def consume_energy(self, amount):
         """Gasta energia y reinicia el delay antes de que vuelva a regenerar."""
         self.energy -= amount
