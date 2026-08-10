@@ -621,11 +621,5 @@ El código fuente del proyecto se encuentra disponible en GitHub:
 
 https://github.com/adrianoop03/blood_proyect
 
----
 
-## Estado del proyecto
-
-**Damn Beast** fue desarrollado como un proyecto académico grupal, integrando programación en Python, desarrollo de videojuegos con Pygame, gestión de datos, inteligencia artificial, interfaces, animaciones y patrones de diseño.
-
-El proyecto busca combinar una experiencia de acción 2D con una ambientación propia y una estructura de código modular que permita continuar ampliando el videojuego.
 
