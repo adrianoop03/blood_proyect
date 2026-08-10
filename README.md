@@ -57,7 +57,7 @@ Frecuenta un bar donde consigue diferentes trabajos. Desde allí recibe encargos
 
 Para él, enfrentarse a criaturas peligrosas simplemente forma parte de su trabajo.
 
-## 🍺 Las armas legendarias
+##Las armas legendarias
 
 Durante una de sus tantas noches de borrachera, el protagonista terminó apostando **su propia alma contra un dios desconocido**.
 
@@ -217,7 +217,7 @@ A continuación se presentan algunas capturas del videojuego.
 
 ---
 
-# 🧩 Patrones de diseño
+#Patrones de diseño
 
 El proyecto utiliza diferentes patrones de diseño para organizar la arquitectura del videojuego.
 
@@ -404,7 +404,7 @@ Este enfoque facilita la creación y administración de diferentes tipos de obje
 
 ---
 
-# 🗄️ Base de datos
+#Base de datos
 
 El proyecto utiliza una base de datos para almacenar información relacionada con los jugadores y sus puntuaciones.
 
