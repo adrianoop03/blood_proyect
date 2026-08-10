@@ -20,6 +20,9 @@ from ui.menu import Menu
 from ui.options import Options
 from ui.pause import Pause
 from ui.death_screen import DeathScreen
+from ui.ranking import Ranking
+
+from utils.helpers import load_font
 
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
@@ -35,6 +38,8 @@ screen = pygame.display.set_mode(
 pygame.display.set_caption("Damn Beast")
 clock = pygame.time.Clock()
 
+score_font = load_font(34)
+
 
 # "menu"
 
@@ -49,6 +54,8 @@ death_screen = None
 camera = None
 player = None
 level = None
+
+score = 0
 
 hud = None
 blood_decals = None
@@ -150,9 +157,16 @@ while running:
                 current_wave = 1
                 awaiting_wave_spawn = False
 
+                score = 0
+
                 enemies = spawn_wave(current_wave)
 
                 current_screen = "juego"
+
+            elif selection == "Ranking":
+
+                ranking = Ranking(screen)
+                current_screen = "ranking"
 
             elif selection == "Opciones":
 
@@ -219,6 +233,12 @@ while running:
 
                 current_screen = "menu"
 
+        elif current_screen == "ranking":
+
+            if ranking.handle_event(event) == "Volver":
+
+                current_screen = "menu"
+
         elif current_screen == "muerte":
 
             selection = death_screen.handle_event(event)
@@ -238,6 +258,7 @@ while running:
                 enemy_manager = EnemyManager(max_concurrent_attackers=3)
                 current_wave = 1
                 awaiting_wave_spawn = False
+                score = 0
                 enemies = spawn_wave(current_wave)
                 current_screen = "juego"
 
@@ -267,6 +288,12 @@ while running:
         if pause is not None:
             pause = Pause(screen)
 
+        if ranking is not None:
+            ranking = Ranking(screen)
+
+        if death_screen is not None:
+            death_screen = DeathScreen(screen, score)
+
     if current_screen == "juego":
 
         if not skill_board.active:
@@ -285,7 +312,7 @@ while running:
             )
 
             if player.is_dead and player.animator.body_player.finished:
-                death_screen = DeathScreen(screen)
+                death_screen = DeathScreen(screen, score)
                 current_screen = "muerte"
             camera.update(
                 player,
@@ -316,6 +343,10 @@ while running:
                 for hit in hits:
 
                     enemy.take_damage(20)
+
+                    if enemy.health <= 0:
+
+                        score += 100
 
             # impactos del enemigo contra el jugador
 
@@ -397,6 +428,14 @@ while running:
             player
         )
 
+        score_label = score_font.render(
+            f"Puntaje: {score}", True, (230, 230, 230)
+        )
+        score_rect = score_label.get_rect(
+            topright=(screen.get_width() - 30, 30)
+        )
+        screen.blit(score_label, score_rect)
+
     elif current_screen == "pausa":
 
         screen.fill((40, 40, 40))
@@ -430,6 +469,11 @@ while running:
 
         options.update()
         options.draw()
+
+    elif current_screen == "ranking":
+
+        ranking.update()
+        ranking.draw()
 
     elif current_screen == "muerte":
 
