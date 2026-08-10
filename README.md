@@ -185,7 +185,8 @@ Desde el menú se puede acceder a las diferentes opciones disponibles y comenzar
 | `D`               | Mover hacia la derecha   |
 | `E`               | Curarse                  |
 | `Mouse`           | Apuntar                  |
-| `Click izquierdo` | Atacar / disparar        |
+| `Click izquierdo` | Atacar                   |
+| `Click derecho  ` | Disparar                 |
 | `Espacio`         | Esquivar                 |
 | `ESC`             | Pausar / abrir menú      |
 
