@@ -19,7 +19,7 @@ from managers.sound_manager import SoundManager
 from ui.menu import Menu
 from ui.options import Options
 from ui.pause import Pause
-
+from ui.death_screen import DeathScreen
 
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
@@ -44,6 +44,7 @@ menu = Menu(screen)
 ranking = None
 options = None
 pause = None
+death_screen = None
 
 camera = None
 player = None
@@ -211,10 +212,36 @@ while running:
 
                 running = False
 
+
         elif current_screen == "opciones":
 
             if options.handle_event(event) == "Volver":
 
+                current_screen = "menu"
+
+        elif current_screen == "muerte":
+
+            selection = death_screen.handle_event(event)
+
+            if selection == "Reintentar":
+                camera = Camera(screen.get_width(), screen.get_height())
+                player = Player()
+                sound_manager = SoundManager()
+                player.sound_manager = sound_manager
+                hud = HUD()
+                level = Level("assets/maps/level2.tmx")
+                level.spawn_player(player)
+                blood_decals = BloodDecals(level_size=(level.width, level.height))
+                player.blood_decals = blood_decals
+                skill_board = SkillBoard(screen.get_width(), screen.get_height())
+                upgrade_pool = get_upgrade_pool()
+                enemy_manager = EnemyManager(max_concurrent_attackers=3)
+                current_wave = 1
+                awaiting_wave_spawn = False
+                enemies = spawn_wave(current_wave)
+                current_screen = "juego"
+
+            elif selection == "Volver al Menú":
                 current_screen = "menu"
 
     # opcines manejo de ventana y resolucion
@@ -257,6 +284,9 @@ while running:
                 enemies
             )
 
+            if player.is_dead and player.animator.body_player.finished:
+                death_screen = DeathScreen(screen)
+                current_screen = "muerte"
             camera.update(
                 player,
                 dt
@@ -400,6 +430,11 @@ while running:
 
         options.update()
         options.draw()
+
+    elif current_screen == "muerte":
+
+        death_screen.update()
+        death_screen.draw()
 
     pygame.display.flip()
 

@@ -2,7 +2,7 @@ import pygame
 import os
 
 class bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction, speed=18,radius=4,color =(255,0,0)):
+    def __init__(self, x, y, direction, speed=50,radius=4,color =(255,0,0)):
         super().__init__()
         diameter = radius * 2
         self.image = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
