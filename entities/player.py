@@ -17,7 +17,7 @@ class Player:
         self.bullets = pygame.sprite.Group()
         self.parry_cooldown = 0
         self.parry_delay = 0.3
-        self.num_pellets = 4
+        self.num_pellets = 5
         self.spread_angle = 10
 
         self.controls = Controls()
@@ -253,8 +253,8 @@ class Player:
         self.sound_manager.play_footstep(category)
 
     def fire_bullets(self):
-        num_pellets = 6
-        spread_angle = 45
+        num_pellets = self.num_pellets
+        spread_angle = self.spread_angle
 
         for i in range(num_pellets):
             offset = random.uniform(
