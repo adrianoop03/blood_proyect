@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 from entities.enemy_utils import has_line_of_sight, move_towards
-
+from patterns.strategy.enemy_animator import EnemyAnimator
 
 class Enemy(pygame.sprite.Sprite):
 
@@ -15,12 +15,16 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         self.width = 32
         self.height = 32
-        self.color = (180, 40, 40)
-        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(self.image, self.color, (0, 0, self.width, self.height))
 
         self.position = pygame.Vector2(x, y)
-        self.rect = self.image.get_rect(center=self.position)
+        self.rect = pygame.Rect(0, 0, self.width, self.height)
+        self.rect.center = self.position
+        self.animator = EnemyAnimator("assets/images/drunk", "idle_armed")
+        self.facing_right = True
+        self.hurt_timer = 0
+        self.hurt_duration = 0.2
+        self.is_dying = False
+        self._attack_toggle = False
 
         self.spawn_position = pygame.Vector2(x, y)
         self.patrol_radius = patrol_radius
@@ -69,6 +73,16 @@ class Enemy(pygame.sprite.Sprite):
         if self.flash_timer > 0:
             self.flash_timer -= dt
 
+        if player.position.x != self.position.x:
+            self.facing_right = player.position.x >= self.position.x
+
+
+        if self.is_dying:
+            self.animator.update(dt)
+            if self.animator.finished:
+                self.kill()
+            return
+
         # --- transiciones de estado ---
         if self.state == Enemy.PATROL:
             if distance_to_player <= self.detection_radius and has_line_of_sight(self.position, player.position, collision_rects):
@@ -90,6 +104,8 @@ class Enemy(pygame.sprite.Sprite):
         elif self.state == Enemy.RETREAT:
             if self.retreat_timer <= 0:
                 self.state = Enemy.CHASE
+            
+        moving = False
 
         # --- comportamiento segun estado ---
         if self.state == Enemy.PATROL:
@@ -101,6 +117,7 @@ class Enemy(pygame.sprite.Sprite):
             else:
                 self.position = move_towards(self.position, self.rect, self.patrol_target, self.speed, dt, collision_rects)
                 self.rect.center = self.position
+                moving = True
 
         elif self.state == Enemy.CHASE:
             can_engage = distance_to_player <= self.attack_range
@@ -109,6 +126,8 @@ class Enemy(pygame.sprite.Sprite):
             if can_engage and granted:
                 self.state = Enemy.ATTACK
                 self.attack_timer = 0
+                self._attack_toggle = not self._attack_toggle
+                self.animator.play("attack2" if self._attack_toggle else "attack1")
             elif can_engage and not granted and all_enemies is not None:
                 # ya esta en rango pero no le toca atacar: rodea al jugador
                 slot_angle = self.manager.get_slot_angle(self, all_enemies)
@@ -119,9 +138,11 @@ class Enemy(pygame.sprite.Sprite):
                 surround_target = player.position + offset
                 self.position = move_towards(self.position, self.rect, surround_target, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
+                moving = True
             else:
                 self.position = move_towards(self.position, self.rect, player.position, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
+                moving = True
 
         elif self.state == Enemy.ATTACK:
             self.attack_timer -= dt
@@ -141,26 +162,57 @@ class Enemy(pygame.sprite.Sprite):
             retreat_target = self.position + direction_away * self.retreat_distance
             self.position = move_towards(self.position, self.rect, retreat_target, self.chase_speed, dt, collision_rects)
             self.rect.center = self.position
+            moving = True
+
+        if self.hurt_timer > 0:
+            self.hurt_timer -= dt
+        elif self.state != Enemy.ATTACK:
+            self.animator.play("walk" if moving else "idle_armed")
+
+        self.animator.update(dt)
 
     def take_damage(self, amount):
+        if self.is_dying:
+            return
+
         self.health -= amount
         self.flash_timer = self.flash_duration
+
         if self.health <= 0:
+            self.is_dying = True
+            self.animator.play("die")
             if self.manager:
                 self.manager.release(self)
-            self.kill()
+        else:
+            self.hurt_timer = self.hurt_duration
+            self.animator.play("hurt")
 
     def draw(self, screen, camera):
         screen_pos = self.position - camera.position
+        legs = self.animator.legs
+        body = self.animator.torso
+        head = self.animator.head
+
+        if not self.facing_right:
+            legs = pygame.transform.flip(legs, True, False)
+            body = pygame.transform.flip(body, True, False)
+            head = pygame.transform.flip(head, True, False)
 
         if self.flash_timer > 0:
-            flash_image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            pygame.draw.rect(flash_image, (255, 255, 255), (0, 0, self.width, self.height))
-            draw_rect = flash_image.get_rect(center=screen_pos)
-            screen.blit(flash_image, draw_rect)
-        else:
-            draw_rect = self.image.get_rect(center=screen_pos)
-            screen.blit(self.image, draw_rect)
+            legs = legs.copy()
+            legs.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            body = body.copy()
+            body.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            head = head.copy()
+            head.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+
+        screen.blit(legs, legs.get_rect(center=screen_pos))
+        screen.blit(body, body.get_rect(center=screen_pos))
+        screen.blit(head, head.get_rect(center=screen_pos))
+
+
+        if self.is_dying:
+            return
 
         bar_width = 30
         bar_height = 4

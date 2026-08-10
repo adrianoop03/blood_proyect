@@ -3,6 +3,7 @@ import math
 import random
 from entities.enemy_utils import has_line_of_sight, move_towards
 from entities.enemy_bullet import EnemyBullet
+from patterns.strategy.enemy_animator import EnemyAnimator
 
 
 class RangedEnemy(pygame.sprite.Sprite):
@@ -15,12 +16,16 @@ class RangedEnemy(pygame.sprite.Sprite):
         super().__init__()
         self.width = 30
         self.height = 30
-        self.color = (60, 90, 200)
-        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(self.image, self.color, (0, 0, self.width, self.height))
 
         self.position = pygame.Vector2(x, y)
-        self.rect = self.image.get_rect(center=self.position)
+        self.rect = pygame.Rect(0, 0, self.width, self.height)
+        self.rect.center = self.position
+
+        self.animator = EnemyAnimator("assets/images/drunk", "idle_armed")
+        self.facing_right = True
+        self.hurt_timer = 0
+        self.hurt_duration = 0.2
+        self.is_dying = False
 
         self.spawn_position = pygame.Vector2(x, y)
         self.patrol_radius = patrol_radius
@@ -67,6 +72,15 @@ class RangedEnemy(pygame.sprite.Sprite):
         if self.flash_timer > 0:
             self.flash_timer -= dt
 
+        if player.position.x != self.position.x:
+            self.facing_right = player.position.x >= self.position.x
+
+        if self.is_dying:
+            self.animator.update(dt)
+            if self.animator.finished:
+                self.kill()
+            return
+
         if self.attack_timer > 0:
             self.attack_timer -= dt
 
@@ -80,6 +94,9 @@ class RangedEnemy(pygame.sprite.Sprite):
                 self.state = RangedEnemy.PATROL
                 self.patrol_target = self.get_new_patrol_point()
 
+        moving = False
+        shooting = False
+
         # --- comportamiento ---
         if self.state == RangedEnemy.PATROL:
             if self.position.distance_to(self.patrol_target) < 10:
@@ -90,6 +107,7 @@ class RangedEnemy(pygame.sprite.Sprite):
             else:
                 self.position = move_towards(self.position, self.rect, self.patrol_target, self.speed, dt, collision_rects)
                 self.rect.center = self.position
+                moving = True
 
         elif self.state in (RangedEnemy.CHASE, RangedEnemy.KITE):
             if distance_to_player < self.preferred_min_range:
@@ -101,12 +119,14 @@ class RangedEnemy(pygame.sprite.Sprite):
                 self.position = move_towards(self.position, self.rect, retreat_target, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
                 self.state = RangedEnemy.KITE
+                moving = True
 
             elif distance_to_player > self.preferred_max_range:
                 # muy lejos: se acerca
                 self.position = move_towards(self.position, self.rect, player.position, self.chase_speed, dt, collision_rects)
                 self.rect.center = self.position
                 self.state = RangedEnemy.CHASE
+                moving = True
 
             else:
                 # en rango ideal: dispara si tiene linea de vision
@@ -114,8 +134,18 @@ class RangedEnemy(pygame.sprite.Sprite):
                 if has_line_of_sight(self.position, player.position, collision_rects) and self.attack_timer <= 0:
                     self.shoot(player)
                     self.attack_timer = self.attack_cooldown
+                    shooting = True
 
         self.bullets.update(dt, collision_rects)
+
+        if self.hurt_timer > 0:
+            self.hurt_timer -= dt
+        elif shooting:
+            self.animator.play("attack1")
+        else:
+            self.animator.play("walk" if moving else "idle_armed")
+
+        self.animator.update(dt)
 
     def shoot(self, player):
         direction = player.position - self.position
@@ -125,23 +155,42 @@ class RangedEnemy(pygame.sprite.Sprite):
         self.bullets.add(new_bullet)
 
     def take_damage(self, amount):
+        if self.is_dying:
+            return
+
         self.health -= amount
         self.flash_timer = self.flash_duration
+
         if self.health <= 0:
-            self.kill()
+            self.is_dying = True
+            self.animator.play("die")
+        else:
+            self.hurt_timer = self.hurt_duration
+            self.animator.play("hurt")
 
     def draw(self, screen, camera):
         screen_pos = self.position - camera.position
 
-        if self.flash_timer > 0:
-            flash_image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            pygame.draw.rect(flash_image, (255, 255, 255), (0, 0, self.width, self.height))
-            draw_rect = flash_image.get_rect(center=screen_pos)
-            screen.blit(flash_image, draw_rect)
-        else:
-            draw_rect = self.image.get_rect(center=screen_pos)
-            screen.blit(self.image, draw_rect)
+        legs = self.animator.legs
+        body = self.animator.torso
+        head = self.animator.head
 
+        if not self.facing_right:
+            legs = pygame.transform.flip(legs, True, False)
+            body = pygame.transform.flip(body, True, False)
+            head = pygame.transform.flip(head, True, False)
+
+        if self.flash_timer > 0:
+            legs = legs.copy()
+            legs.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            body = body.copy()
+            body.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            head = head.copy()
+            head.fill((255, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT)
+
+        screen.blit(legs, legs.get_rect(center=screen_pos))
+        screen.blit(body, body.get_rect(center=screen_pos))
+        screen.blit(head, head.get_rect(center=screen_pos))
         bar_width = 30
         bar_height = 4
         health_ratio = self.health / self.max_health
@@ -153,3 +202,6 @@ class RangedEnemy(pygame.sprite.Sprite):
 
         for b in self.bullets:
             b.draw(screen, camera)
+
+        if self.is_dying:
+            return
