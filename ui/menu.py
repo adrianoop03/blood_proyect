@@ -5,7 +5,7 @@ from utils.helpers import Button, load_font
 class Menu:
     
 #opciones menu
-    OPTIONS = ["Iniciar", "Opciones", "Salir"]
+    OPTIONS = ["Iniciar", "Ranking", "Opciones", "Salir"]
 
     def __init__(self, screen):
         self.screen = screen
@@ -14,8 +14,8 @@ class Menu:
         self.button_font = load_font(40)
 
         center_x = screen.get_width() // 2
-        start_y = 420
-        spacing = 110
+        start_y = 360
+        spacing = 95
         button_width, button_height = 380, 80
 
         self.buttons = []

@@ -44,6 +44,11 @@ class Player:
         self.flash_timer = 0
         self.flash_duration = 0.15
 
+        # curacion: cargas limitadas, no infinita
+        self.max_heal_charges = 3
+        self.heal_charges = self.max_heal_charges
+        self.heal_amount = 25  # vida que restaura cada carga
+
         # energia / sprint
         self.max_energy = 100
         self.energy = 100
@@ -65,9 +70,6 @@ class Player:
         self.bullets = pygame.sprite.Group()
         # hitbox del jugador
         self.position = pygame.Vector2(0, 0)
-        self.hitbox = pygame.Rect(0, 0, 80, 80)
-        self.hitbox.center = self.position
-        # hitbox del jugador
         self.hitbox = pygame.Rect(0, 0, 80, 80)
         self.hitbox.center = self.position
 
@@ -128,6 +130,23 @@ class Player:
 
         if self.health > self.max_health:
             self.health = self.max_health
+
+    def try_heal(self):
+        """Gasta una carga de curacion, si hay disponible y hace falta.
+        Devuelve True si curo, False si no pudo (sin cargas o vida llena)."""
+        if self.heal_charges <= 0:
+            return False
+
+        if self.health >= self.max_health:
+            return False
+
+        self.heal_charges -= 1
+        self.heal(self.heal_amount)
+
+        if self.sound_manager:
+            self.sound_manager.play("heal")
+
+        return True
 
     def consume_energy(self, amount):
         """Gasta energia y reinicia el delay antes de que vuelva a regenerar."""
@@ -486,4 +505,3 @@ class Player:
                 b.image,
                 bullet_rect
             )
-
